@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>ماشین حساب فانتزی کسری ✨ Cute Fraction Calculator</title>
+
+  <!-- PWA & Android Meta Tags -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#ff85a2" id="metaThemeColor">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="ماشین حساب">
+  
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="apple-touch-icon" href="icon-192.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-theme="pink">
+  <!-- پس‌زمینه جادویی و ذرات معلق -->
+  <div class="magic-background">
+    <div class="bubble b1">🌸</div>
+    <div class="bubble b2">✨</div>
+    <div class="bubble b3">💖</div>
+    <div class="bubble b4">⭐</div>
+    <div class="bubble b5">☁️</div>
+    <div class="bubble b6">🍬</div>
+  </div>
+
+  <div class="container">
+    <!-- جعبه ماشین حساب -->
+    <div class="calc-card" id="calcCard">
+      <!-- گوش‌های گربه‌ای فانتزی -->
+      <div class="cat-ears">
+        <div class="ear ear-left"></div>
+        <div class="ear ear-right"></div>
+      </div>
+
+      <!-- نوار کنترل بالا: تم‌ها و صدا -->
+      <header class="calc-header">
+        <div class="theme-picker" title="تغییر تم رنگی">
+          <button class="theme-btn active" data-set-theme="pink" style="--c:#ff85a2" aria-label="تم صورتی" title="🌸 صورتی شکوفه‌ای"></button>
+          <button class="theme-btn" data-set-theme="purple" style="--c:#a78bfa" aria-label="تم بنفش" title="🌌 بنفش رویایی"></button>
+          <button class="theme-btn" data-set-theme="mint" style="--c:#34d399" aria-label="تم نعنایی" title="🌿 نعنایی پاستلی"></button>
+          <button class="theme-btn" data-set-theme="sunset" style="--c:#fb923c" aria-label="تم غروب" title="🍊 کارامل غروب"></button>
+          <button class="theme-btn" data-set-theme="cyber" style="--c:#00f0ff" aria-label="تم گیمینگ سایبرپانک" title="🎮 گیمینگ سایبرپانک (پسرونه)"></button>
+          <button class="theme-btn" data-set-theme="hero" style="--c:#2563eb" aria-label="تم قهرمان مسابقه" title="🚀 قهرمان و مسابقه (پسرونه)"></button>
+        </div>
+
+        <div class="header-actions">
+          <button id="pwaInstallBtn" class="icon-btn pwa-btn" title="نصب اپلیکیشن روی گوشی (PWA)" aria-label="نصب برنامه" style="display:none;">
+            <span>📲</span>
+          </button>
+          <button id="soundToggle" class="icon-btn" title="صدا فعال / غیرفعال" aria-label="صدا">
+            <span id="soundIcon">🔔</span>
+          </button>
+          <button id="historyToggle" class="icon-btn" title="تاریخچه محاسبات" aria-label="تاریخچه">
+            <span>📜</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- کاراکتر عروسکی واکنشی -->
+      <div class="mascot" id="mascot" title="سلام! برای لبخند زدن من کلیک کنید">
+        <div class="mascot-face">
+          <div class="eye left-eye">
+            <div class="pupil"></div>
+            <div class="sparkle"></div>
+          </div>
+          <div class="blush left-blush"></div>
+          <div class="mouth" id="mascotMouth">3</div>
+          <div class="blush right-blush"></div>
+          <div class="eye right-eye">
+            <div class="pupil"></div>
+            <div class="sparkle"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- صفحه نمایشگر -->
+      <div class="display-container" id="displayContainer" title="برای کپی کلیک کنید">
+        <div class="previous-operand" id="previousOperand"></div>
+        <div class="current-operand" id="currentOperand">0</div>
+        <!-- زیرنویس هوشمند کسر مخلوط و اعشاری -->
+        <div class="fraction-subview" id="fractionSubview"></div>
+        <div class="copy-badge" id="copyBadge">کپی شد! ✨</div>
+      </div>
+
+      <!-- نوار ابزار ویژه کسرها -->
+      <div class="fraction-toolbar">
+        <button class="frac-tool-btn" id="fracBtn" data-action="fraction" title="درج خط کسر (کلید F یا \)">
+          <span class="icon">⅟</span> خط کسر <code>a/b</code>
+        </button>
+        <button class="frac-tool-btn" id="formatToggleBtn" data-action="toggle-format" title="تغییر نما: کسر ساده ⇄ کسر مخلوط ⇄ اعشاری">
+          <span class="icon">🔄</span> <span id="formatLabel">کسر ⇄ اعشار</span>
+        </button>
+      </div>
+
+      <!-- کلیدهای ماشین حساب -->
+      <div class="keypad">
+        <button class="btn btn-action" data-action="all-clear">AC</button>
+        <button class="btn btn-action" data-action="delete">⌫</button>
+        <button class="btn btn-frac" data-action="fraction" title="درج خط کسر (a/b)">a⁄b</button>
+        <button class="btn btn-op" data-operator="÷">÷</button>
+
+        <button class="btn btn-num" data-number="7">7</button>
+        <button class="btn btn-num" data-number="8">8</button>
+        <button class="btn btn-num" data-number="9">9</button>
+        <button class="btn btn-op" data-operator="×">×</button>
+
+        <button class="btn btn-num" data-number="4">4</button>
+        <button class="btn btn-num" data-number="5">5</button>
+        <button class="btn btn-num" data-number="6">6</button>
+        <button class="btn btn-op" data-operator="-">−</button>
+
+        <button class="btn btn-num" data-number="1">1</button>
+        <button class="btn btn-num" data-number="2">2</button>
+        <button class="btn btn-num" data-number="3">3</button>
+        <button class="btn btn-op" data-operator="+">+</button>
+
+        <button class="btn btn-action" data-action="negate">±</button>
+        <button class="btn btn-num" data-number="0">0</button>
+        <button class="btn btn-num" data-number=".">.</button>
+        <button class="btn btn-equals" data-action="calculate">=</button>
+      </div>
+
+      <!-- پنل تاریخچه محاسبات -->
+      <div class="history-panel" id="historyPanel">
+        <div class="history-header">
+          <span>📜 تاریخچه محاسبات کسری</span>
+          <button id="clearHistoryBtn" class="clear-hist-btn" title="پاکسازی تاریخچه">پاک کردن</button>
+        </div>
+        <ul class="history-list" id="historyList">
+          <li class="empty-msg">هنوز محاسبه‌ای انجام نشده ✨</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- راهنمای کلیدها -->
+    <div class="keyboard-hint">
+      <span>💡 کیبورد: اعداد • <code>+</code> <code>-</code> <code>*</code> <code>/</code> • کلید <code>F</code> یا <code>\</code> برای کسر <code>a/b</code> • <code>Enter</code> محاسبه</span>
+    </div>
+
+    <!-- بنر نصب روی اندروید -->
+    <div id="pwaBanner" class="pwa-banner" style="display:none;">
+      <span>📲 ماشین حساب رو روی گوشیت نصب کن!</span>
+      <button id="pwaBannerBtn" class="pwa-action-btn">نصب سریع</button>
+      <button id="pwaBannerClose" class="pwa-close-btn" aria-label="بستن">✕</button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
