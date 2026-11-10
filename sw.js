@@ -3,7 +3,7 @@
  * آفلاین و کش هوشمند دارایی‌ها
  */
 
-const CACHE_NAME = 'fancalc-pwa-v2';
+const CACHE_NAME = 'fancalc-pwa-v3';
 
 const ASSETS_TO_CACHE = [
   './',

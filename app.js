@@ -173,6 +173,7 @@ class SoundEffects {
   constructor() {
     this.ctx = null;
     this.enabled = true;
+    this.idleTimer = null;
   }
 
   init() {
@@ -183,7 +184,29 @@ class SoundEffects {
       }
     }
     if (this.ctx && this.ctx.state === 'suspended') {
-      this.ctx.resume();
+      this.ctx.resume().catch(() => {});
+    }
+    if (this.idleTimer) {
+      clearTimeout(this.idleTimer);
+      this.idleTimer = null;
+    }
+  }
+
+  scheduleIdleSuspend() {
+    if (this.idleTimer) clearTimeout(this.idleTimer);
+    this.idleTimer = setTimeout(() => {
+      this.idleTimer = null;
+      this.suspend();
+    }, 2000);
+  }
+
+  suspend() {
+    if (this.idleTimer) {
+      clearTimeout(this.idleTimer);
+      this.idleTimer = null;
+    }
+    if (this.ctx && this.ctx.state === 'running') {
+      this.ctx.suspend().catch(() => {});
     }
   }
 
@@ -206,8 +229,13 @@ class SoundEffects {
     osc.connect(gain);
     gain.connect(this.ctx.destination);
 
+    osc.onended = () => {
+      osc.disconnect();
+      gain.disconnect();
+    };
     osc.start();
     osc.stop(this.ctx.currentTime + 0.08);
+    this.scheduleIdleSuspend();
   }
 
   // آکورد خوشحالی و جادویی برای مساوی (=)
@@ -231,9 +259,14 @@ class SoundEffects {
       osc.connect(gain);
       gain.connect(this.ctx.destination);
 
+      osc.onended = () => {
+        osc.disconnect();
+        gain.disconnect();
+      };
       osc.start(startTime);
       osc.stop(startTime + 0.35);
     });
+    this.scheduleIdleSuspend();
   }
 
   // صدای خطا / بم
@@ -255,8 +288,13 @@ class SoundEffects {
     osc.connect(gain);
     gain.connect(this.ctx.destination);
 
+    osc.onended = () => {
+      osc.disconnect();
+      gain.disconnect();
+    };
     osc.start();
     osc.stop(this.ctx.currentTime + 0.25);
+    this.scheduleIdleSuspend();
   }
 }
 
@@ -334,6 +372,21 @@ class Calculator {
     this.history = [];
     this.displayFormat = 'fraction'; // 'fraction' (پیش‌فرض کسری) | 'mixed' | 'decimal'
     this.lastResultFraction = null;
+    this._lastCurrentHTML = null;
+    this._lastPrevText = null;
+    this._lastSubviewKey = null;
+    this._lastShrink = null;
+
+    // Event delegation برای پیل‌های زیرنویس (جلوگیری از ساخت listener تکراری)
+    this.fractionSubviewEl.addEventListener('click', (e) => {
+      const pill = e.target.closest('.subview-pill');
+      if (!pill || !pill.dataset.format) return;
+      e.stopPropagation();
+      this.setDisplayFormat(pill.dataset.format);
+      this.updateDisplay();
+      sounds.playPop(520);
+    });
+
     this.clear();
   }
 
@@ -571,57 +624,44 @@ class Calculator {
   }
 
   updateDisplay() {
-    // رندر HTML فرمول کسر
-    this.currentOperandEl.innerHTML = renderFractionHTML(this.currentOperand);
+    // رندر HTML فرمول کسر فقط در صورت تغییر
+    const currentHTML = renderFractionHTML(this.currentOperand);
+    if (currentHTML !== this._lastCurrentHTML) {
+      this.currentOperandEl.innerHTML = currentHTML;
+      this._lastCurrentHTML = currentHTML;
+    }
 
-    if (this.operation != null) {
-      this.previousOperandEl.innerText = renderExpressionHTML(this.previousOperand);
-    } else {
-      this.previousOperandEl.innerText = renderExpressionHTML(this.previousOperand);
+    const prevText = renderExpressionHTML(this.previousOperand);
+    if (prevText !== this._lastPrevText) {
+      this.previousOperandEl.innerText = prevText;
+      this._lastPrevText = prevText;
     }
 
     // به‌روزرسانی زیرنویس هوشمند کسر (نمایش معادل‌ها)
     if (this.lastResultFraction && this.lastResultFraction.d !== 1n) {
-      const mixedStr = this.lastResultFraction.toMixedString();
-      const decStr = this.lastResultFraction.toDecimalString();
       const fracStr = this.lastResultFraction.toFractionString();
-
-      this.fractionSubviewEl.innerHTML = `
-        <span class="subview-pill" id="pillFrac" title="تغییر به کسر ساده">⅟ ${fracStr}</span>
-        <span class="subview-pill" id="pillMixed" title="تغییر به کسر مخلوط">🍰 ${mixedStr}</span>
-        <span class="subview-pill" id="pillDec" title="تغییر به اعشار">🔢 ${decStr}</span>
-      `;
-      this.fractionSubviewEl.classList.add('show');
-
-      // اتصال کلیک روی پیل‌ها
-      document.getElementById('pillFrac')?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        this.setDisplayFormat('fraction');
-        this.updateDisplay();
-        sounds.playPop(520);
-      });
-      document.getElementById('pillMixed')?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        this.setDisplayFormat('mixed');
-        this.updateDisplay();
-        sounds.playPop(520);
-      });
-      document.getElementById('pillDec')?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        this.setDisplayFormat('decimal');
-        this.updateDisplay();
-        sounds.playPop(520);
-      });
-    } else {
+      if (fracStr !== this._lastSubviewKey) {
+        const mixedStr = this.lastResultFraction.toMixedString();
+        const decStr = this.lastResultFraction.toDecimalString();
+        this.fractionSubviewEl.innerHTML = `
+          <span class="subview-pill" data-format="fraction" title="تغییر به کسر ساده">⅟ ${fracStr}</span>
+          <span class="subview-pill" data-format="mixed" title="تغییر به کسر مخلوط">🍰 ${mixedStr}</span>
+          <span class="subview-pill" data-format="decimal" title="تغییر به اعشار">🔢 ${decStr}</span>
+        `;
+        this.fractionSubviewEl.classList.add('show');
+        this._lastSubviewKey = fracStr;
+      }
+    } else if (this._lastSubviewKey !== '') {
       this.fractionSubviewEl.innerHTML = '';
       this.fractionSubviewEl.classList.remove('show');
+      this._lastSubviewKey = '';
     }
 
     // کوچک‌کردن فونت برای مقادیر خیلی طولانی
-    if (this.currentOperand.length > 10) {
-      this.currentOperandEl.classList.add('shrink');
-    } else {
-      this.currentOperandEl.classList.remove('shrink');
+    const shouldShrink = this.currentOperand.length > 10;
+    if (shouldShrink !== this._lastShrink) {
+      this.currentOperandEl.classList.toggle('shrink', shouldShrink);
+      this._lastShrink = shouldShrink;
     }
   }
 }
@@ -660,12 +700,41 @@ function triggerMascotBlink() {
   }, 200);
 }
 
-// چشمک زدن رندوم هر چند ثانیه
-setInterval(() => {
-  if (Math.random() > 0.4) {
-    triggerMascotBlink();
+// چشمک زدن رندوم هر چند ثانیه (متوقف در پس‌زمینه)
+let blinkIntervalId = null;
+function startBlinkLoop() {
+  if (blinkIntervalId !== null) return;
+  blinkIntervalId = setInterval(() => {
+    if (!document.hidden && Math.random() > 0.4) {
+      triggerMascotBlink();
+    }
+  }, 3500);
+}
+
+function stopBlinkLoop() {
+  if (blinkIntervalId !== null) {
+    clearInterval(blinkIntervalId);
+    blinkIntervalId = null;
   }
-}, 3500);
+}
+
+function handleVisibilityChange() {
+  const isHidden = document.hidden;
+  document.body.classList.toggle('page-hidden', isHidden);
+  if (isHidden) {
+    stopBlinkLoop();
+    sounds.suspend();
+  } else {
+    startBlinkLoop();
+  }
+}
+
+document.addEventListener('visibilitychange', handleVisibilityChange);
+if (!document.hidden) {
+  startBlinkLoop();
+} else {
+  document.body.classList.add('page-hidden');
+}
 
 function triggerMascotHappy() {
   mascotEl.classList.add('happy');
@@ -770,30 +839,39 @@ function renderHistory() {
     return;
   }
 
-  historyList.innerHTML = '';
-  calculator.history.forEach(item => {
+  const fragment = document.createDocumentFragment();
+  calculator.history.forEach((item, index) => {
     const li = document.createElement('li');
     li.className = 'history-item';
+    li.dataset.index = index;
     li.innerHTML = `
       <span class="hist-exp">${renderExpressionHTML(item.expression)} =</span>
       <span class="hist-res">${item.result} ${item.mixed !== item.result ? `(${item.mixed})` : ''}</span>
     `;
-    li.addEventListener('click', () => {
-      calculator.currentOperand = item.result.toString();
-      try {
-        calculator.lastResultFraction = Fraction.parse(item.result);
-      } catch (e) {
-        calculator.lastResultFraction = null;
-      }
-      calculator.previousOperand = '';
-      calculator.operation = undefined;
-      calculator.updateDisplay();
-      historyPanel.classList.remove('open');
-      sounds.playPop(520);
-    });
-    historyList.appendChild(li);
+    fragment.appendChild(li);
   });
+  historyList.innerHTML = '';
+  historyList.appendChild(fragment);
 }
+
+historyList.addEventListener('click', (e) => {
+  const li = e.target.closest('.history-item');
+  if (!li) return;
+  const item = calculator.history[Number(li.dataset.index)];
+  if (!item) return;
+
+  calculator.currentOperand = item.result.toString();
+  try {
+    calculator.lastResultFraction = Fraction.parse(item.result);
+  } catch (err) {
+    calculator.lastResultFraction = null;
+  }
+  calculator.previousOperand = '';
+  calculator.operation = undefined;
+  calculator.updateDisplay();
+  historyPanel.classList.remove('open');
+  sounds.playPop(520);
+});
 
 historyToggle.addEventListener('click', () => {
   historyPanel.classList.toggle('open');
@@ -896,7 +974,11 @@ soundToggle.addEventListener('click', () => {
   try {
     localStorage.setItem('fancalc_sound', sounds.enabled ? '1' : '0');
   } catch (e) {}
-  if (sounds.enabled) sounds.playPop(500);
+  if (sounds.enabled) {
+    sounds.playPop(500);
+  } else {
+    sounds.suspend();
+  }
 });
 
 try {
@@ -910,6 +992,7 @@ try {
 // --- پشتیبانی کامل از صفحه‌کلید (Keyboard Support) ---
 window.addEventListener('keydown', (e) => {
   let key = e.key;
+  if (e.repeat && key !== 'Backspace') return;
 
   // کلیدهای عددی
   if ((key >= '0' && key <= '9') || key === '.') {
