@@ -1,27 +1,32 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
+
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>ماشین حساب فانتزی کسری ✨ Cute Fraction Calculator</title>
 
-  <!-- PWA & Android Meta Tags -->
+  <!-- PWA & Android Meta Tags گوشی اندروید -->
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#ff85a2" id="metaThemeColor">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="ماشین حساب">
-  
+
   <link rel="icon" type="image/svg+xml" href="icon.svg">
   <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
   <link rel="apple-touch-icon" href="icon-192.png">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&family=Fredoka:wght@400;600;700&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body data-theme="pink">
   <!-- پس‌زمینه جادویی و ذرات معلق -->
   <div class="magic-background">
@@ -45,16 +50,23 @@
       <!-- نوار کنترل بالا: تم‌ها و صدا -->
       <header class="calc-header">
         <div class="theme-picker" title="تغییر تم رنگی">
-          <button class="theme-btn active" data-set-theme="pink" style="--c:#ff85a2" aria-label="تم صورتی" title="🌸 صورتی شکوفه‌ای"></button>
-          <button class="theme-btn" data-set-theme="purple" style="--c:#a78bfa" aria-label="تم بنفش" title="🌌 بنفش رویایی"></button>
-          <button class="theme-btn" data-set-theme="mint" style="--c:#34d399" aria-label="تم نعنایی" title="🌿 نعنایی پاستلی"></button>
-          <button class="theme-btn" data-set-theme="sunset" style="--c:#fb923c" aria-label="تم غروب" title="🍊 کارامل غروب"></button>
-          <button class="theme-btn" data-set-theme="cyber" style="--c:#00f0ff" aria-label="تم گیمینگ سایبرپانک" title="🎮 گیمینگ سایبرپانک (پسرونه)"></button>
-          <button class="theme-btn" data-set-theme="hero" style="--c:#2563eb" aria-label="تم قهرمان مسابقه" title="🚀 قهرمان و مسابقه (پسرونه)"></button>
+          <button class="theme-btn active" data-set-theme="pink" style="--c:#ff85a2" aria-label="تم صورتی"
+            title="🌸 صورتی شکوفه‌ای"></button>
+          <button class="theme-btn" data-set-theme="purple" style="--c:#a78bfa" aria-label="تم بنفش"
+            title="🌌 بنفش رویایی"></button>
+          <button class="theme-btn" data-set-theme="mint" style="--c:#34d399" aria-label="تم نعنایی"
+            title="🌿 نعنایی پاستلی"></button>
+          <button class="theme-btn" data-set-theme="sunset" style="--c:#fb923c" aria-label="تم غروب"
+            title="🍊 کارامل غروب"></button>
+          <button class="theme-btn" data-set-theme="cyber" style="--c:#00f0ff" aria-label="تم گیمینگ سایبرپانک"
+            title="🎮 گیمینگ سایبرپانک (پسرونه)"></button>
+          <button class="theme-btn" data-set-theme="hero" style="--c:#2563eb" aria-label="تم قهرمان مسابقه"
+            title="🚀 قهرمان و مسابقه (پسرونه)"></button>
         </div>
 
         <div class="header-actions">
-          <button id="pwaInstallBtn" class="icon-btn pwa-btn" title="نصب اپلیکیشن روی گوشی (PWA)" aria-label="نصب برنامه" style="display:none;">
+          <button id="pwaInstallBtn" class="icon-btn pwa-btn" title="نصب اپلیکیشن روی گوشی (PWA)"
+            aria-label="نصب برنامه" style="display:none;">
             <span>📲</span>
           </button>
           <button id="soundToggle" class="icon-btn" title="صدا فعال / غیرفعال" aria-label="صدا">
@@ -97,7 +109,8 @@
         <button class="frac-tool-btn" id="fracBtn" data-action="fraction" title="درج خط کسر (کلید F یا \)">
           <span class="icon">⅟</span> خط کسر <code>a/b</code>
         </button>
-        <button class="frac-tool-btn" id="formatToggleBtn" data-action="toggle-format" title="تغییر نما: کسر ساده ⇄ کسر مخلوط ⇄ اعشاری">
+        <button class="frac-tool-btn" id="formatToggleBtn" data-action="toggle-format"
+          title="تغییر نما: کسر ساده ⇄ کسر مخلوط ⇄ اعشاری">
           <span class="icon">🔄</span> <span id="formatLabel">کسر ⇄ اعشار</span>
         </button>
       </div>
@@ -144,7 +157,8 @@
 
     <!-- راهنمای کلیدها -->
     <div class="keyboard-hint">
-      <span>💡 کیبورد: اعداد • <code>+</code> <code>-</code> <code>*</code> <code>/</code> • کلید <code>F</code> یا <code>\</code> برای کسر <code>a/b</code> • <code>Enter</code> محاسبه</span>
+      <span>💡 کیبورد: اعداد • <code>+</code> <code>-</code> <code>*</code> <code>/</code> • کلید <code>F</code> یا
+        <code>\</code> برای کسر <code>a/b</code> • <code>Enter</code> محاسبه</span>
     </div>
 
     <!-- بنر نصب روی اندروید -->
@@ -157,4 +171,5 @@
 
   <script src="app.js"></script>
 </body>
+
 </html>
